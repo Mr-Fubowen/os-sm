@@ -1,116 +1,169 @@
-# m3u8-plus
+# sm - 系统信息监控命令行工具
 
-**m3u8-plus** 是一个用于解析和修改 **.m3u8** 播放列表文件的工具库。它可以将 **.m3u8** 文件内容转换成 JavaScript 对象，支持 Node.js、ES 模块以及浏览器环境。
+[![Node.js Version](https://img.shields.io/badge/node-%3E%3D18.0.0-brightgreen)](https://nodejs.org/)
+[![License](https://img.shields.io/badge/license-MIT-blue)](https://opensource.org/licenses/MIT)
+[![System Information](https://img.shields.io/badge/powered%20by-systeminformation-blueviolet)](https://systeminformation.io/)
 
-## 功能特点
+`sm` 是一个强大的命令行工具，用于实时监控和查询系统硬件、软件及运行状态信息。基于 `Node` 和 `systeminformation` 库构建，提供简洁直观的命令行界面。
 
-1. 轻松解析 .m3u8 文件
-1. 支持 AES-128 加密信息解析
-1. 可修改播放列表信息
-1. 支持将修改后的对象以 .m3u8 文本格式输出
-1. 通用环境兼容（Node/ES/浏览器）
+## 功能亮点
+
+-   **全面系统监控**：覆盖 CPU、内存、磁盘、网络等 20+ 关键系统指标
+-   **多语言支持**：中英文双语切换（支持扩展更多语言）
+-   **层级化命令**：主命令+子命令组合查询，精准获取目标信息
+-   **开发者友好**：JSON 结构化输出，便于脚本集成
+-   **跨平台兼容**：支持 Windows, Linux, macOS 三大操作系统
 
 ## 安装
 
-### npm
+```bash
+# 通过 npm 全局安装
+npm install -g os-sm
 
-```sh
-npm install m3u8-plus
+# 或使用 yarn
+yarn global add os-sm
 ```
 
-### 浏览器
+## 快速开始
 
-```html
-<script src="path/to/index.umd.cjs"></script>
+```bash
+# 查看 CPU 信息
+sm cpu
+
+# 查看内存信息及硬件布局
+sm mem --layout
+
+# 查看磁盘信息（中文输出）
+sm -l zh disk
+
+# 获取电池状态
+sm battery
+
+# 查看 Docker 容器信息
+sm docker --containers
+
+# 查看系统概览信息
+sm static
 ```
 
-## 示例
+## 命令参考
 
-```js
-import { parse, replace } from 'm3u8-plus'
+### 核心系统命令
 
-const demo01 = `
-#EXTM3U
-#EXT-X-VERSION:3
-#EXT-X-TARGETDURATION:10
-#EXT-X-MEDIA-SEQUENCE:0
-#EXT-X-PLAYLIST-TYPE:VOD
-#EXT-X-KEY:METHOD=AES-128,URI="key.dat",IV=0x00000000000000000000000000000000
-#EXTINF:10.000000,
-segmt0.ts
-#EXTINF:10.000000,
-segmt1.ts
-#EXTINF:10.000000,
-segmt2.ts
-#EXT-X-ENDLIST
-`
-const m3u8 = parse(demo01)
-console.log(m3u8)
-/*
-{
-  start: true,
-  version: 3,
-  targetDuration: 10,
-  mediaSequence: 0,
-  type: 'VOD',
-  key: {
-    method: 'AES-128',
-    url: 'key.dat',
-    iv: '0x00000000000000000000000000000000'
-  },
-  keys: [
-    {
-      method: 'AES-128',
-      url: 'key.dat',
-      iv: '0x00000000000000000000000000000000'
-    }
-  ],
-  segments: [
-    { duration: 10, title: '', url: 'segmt0.ts', key: [Object] },
-    { duration: 10, title: '', url: 'segmt1.ts', key: [Object] },
-    { duration: 10, title: '', url: 'segmt2.ts', key: [Object] }
-  ],
-  end: true,
-  totalDuration: 2040,
-  unknowns: [],
-  toText: [Function: toText]
-}
-*/
-console.log(m3u8.toText())
-/*
-#EXTM3U
-#EXT-X-VERSION:3
-#EXT-X-TARGETDURATION:10
-#EXT-X-MEDIA-SEQUENCE:0
-#EXT-X-PLAYLIST-TYPE:VOD
-#EXT-X-KEY:METHOD=AES-128,URL="key.dat",IV=0x00000000000000000000000000000000
-#EXTINF:10,
-segmt0.ts
-#EXTINF:10,
-segmt1.ts
-#EXTINF:10,
-segmt2.ts
-#EXT-X-ENDLIST
-*/
+| 命令        | 描述             | 子选项                                           |
+| ----------- | ---------------- | ------------------------------------------------ |
+| `sm cpu`    | CPU 信息         | `--speed`, `--temperature`, `--cache`, `--flags` |
+| `sm mem`    | 内存使用情况     | `--layout`                                       |
+| `sm disk`   | 磁盘 I/O 信息    | `--layout`                                       |
+| `sm os`     | 操作系统信息     | -                                                |
+| `sm static` | 完整系统静态信息 | -                                                |
+
+### 硬件监控
+
+| 命令           | 描述      |
+| -------------- | --------- |
+| `sm bios`      | BIOS 信息 |
+| `sm baseboard` | 主板信息  |
+| `sm graphics`  | 显卡信息  |
+| `sm audio`     | 音频设备  |
+| `sm usb`       | USB 设备  |
+| `sm bluetooth` | 蓝牙设备  |
+
+### 网络与连接
+
+| 命令         | 描述      | 子选项                                                               |
+| ------------ | --------- | -------------------------------------------------------------------- |
+| `sm network` | 网络接口  | `--connections`, `--gatewayDefault`, `--interfaceDefault`, `--stats` |
+| `sm wifi`    | WiFi 信息 | `--connections`, `--networks`                                        |
+
+### 电源与进程
+
+| 命令           | 描述     | 子选项   |
+| -------------- | -------- | -------- |
+| `sm battery`   | 电池状态 | -        |
+| `sm processes` | 系统进程 | `--load` |
+| `sm users`     | 登录用户 | -        |
+
+### 虚拟化与容器
+
+| 命令            | 描述            | 子选项                                                                                        |
+| --------------- | --------------- | --------------------------------------------------------------------------------------------- |
+| `sm docker`     | Docker 信息     | `--containerProcesses`, `--containerStats`, `--containers`, `--images`, `--info`, `--volumes` |
+| `sm virtualbox` | VirtualBox 信息 | -                                                                                             |
+
+### 文件系统
+
+| 命令    | 描述         | 子选项                  |
+| ------- | ------------ | ----------------------- |
+| `sm fs` | 文件系统统计 | `--size`, `--openFiles` |
+
+## 全局选项
+
+| 选项                | 描述                     | 默认值 |
+| ------------------- | ------------------------ | ------ |
+| `-l, --lang <lang>` | 设置输出语言 (`en`/`zh`) | `en`   |
+| `-v, --version`     | 显示版本信息             | -      |
+| `-h, --help`        | 显示命令帮助             | -      |
+
+## 开发者指南
+
+### 项目结构
+
+```bash
+os-sm/
+├── locales/          # 国际化资源文件
+│   ├── en.json       # 英文翻译
+│   └── zh.json       # 中文翻译
+├── index.js          # 主程序入口
+└── package.json
 ```
 
-## API 说明
+### 添加新语言
 
-### **parse(text: string)**
+1. 创建语言文件 `locales/fr.json`
+2. 添加法语翻译内容
+3. 更新 i18n 配置：
 
-解析 .m3u8 文本，返回一个包含播放列表信息的对象。
+```javascript
+i18n.configure({
+    locales: ['en', 'zh', 'fr'] // 添加法语
+    // ...其他配置
+})
+```
 
-### **replace(message: string, ...args: any[])**
+## 贡献指南
 
-用于字符串参数占位符替换的辅助函数。
+我们欢迎任何形式的贡献：
 
-## 更多
+1. 提交 Issue 报告问题或建议新功能
+2. Fork 项目并提交 Pull Request
+3. 帮助完善多语言支持
+4. 编写测试用例或改进文档
 
-1. 支持自定义标签解析逻辑
-2. 可通过 .toText() 方法导出编辑后的 m3u8 文本
-3. 内部维护 segments、keys、unknowns 等详细信息
+贡献流程：
+
+```bash
+git clone https://github.com/your-repo/os-sm.git
+cd os-sm
+npm install
+git commit -m "Add awesome feature"
+git push origin main
+```
 
 ## 许可证
 
-**MIT**\
-如果你觉得这个项目对你有帮助，欢迎点赞和 Star！🎉
+本项目基于 [MIT 许可证](https://opensource.org/licenses/MIT) 发布。
+
+```text
+Copyright (c) 2025 Fubowen
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+```

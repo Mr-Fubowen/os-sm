@@ -26,7 +26,9 @@ const commands = {
         func: si.cpu,
         options: {
             speed: {
-                func: si.cpuCurrentSpeed
+                func: () => {
+                    return si.cpuCurrentSpeed()
+                }
             },
             temperature: {
                 func: si.cpuTemperature
@@ -118,10 +120,10 @@ const commands = {
     docker: {
         func: si.dockerAll,
         options: {
-            containerProcesses: {
+            processes: {
                 func: si.dockerContainerProcesses
             },
-            containerStats: {
+            stats: {
                 func: si.dockerContainerStats
             },
             containers: {
@@ -130,7 +132,7 @@ const commands = {
             images: {
                 func: si.dockerImages
             },
-            info: {
+            xccc: {
                 func: si.dockerInfo
             },
             volumes: {
@@ -169,21 +171,24 @@ function parse() {
         const actions = []
         const options = commands[key]
         const cmd = command.command(key).description(i18n.__(key))
-        actions.push(options.func)
-        if (options.children) {
-            for (const subkey in options.children) {
-                const value = options.children[subkey]
+        actions.push(async stats => {
+            stats[key] = await options.func()
+        })
+        if (options.options) {
+            for (const subkey in options.options) {
+                const value = options.options[subkey]
                 const flags = replace('-{0} --{1} <string>', subkey.at(0), subkey)
                 const descr = replace('{0}.options.{1}', key, subkey)
                 cmd.option(flags, i18n.__(descr))
-                actions.push(value.func)
+                actions.push(async stats => {
+                    stats[subkey] = await value.func()
+                })
             }
         }
         cmd.action(async () => {
             const stats = {}
-            for (const action of actions) {
-                stats[key] = await action()
-            }
+            const tasks = actions.map(it => it(stats))
+            await Promise.all(tasks)
             console.log(stats)
             return stats
         })
@@ -196,7 +201,7 @@ function parse() {
 }
 program
     .name('sm')
-    .option('-l --lang <language>', 'Set the language for the application', 'en')
+    .option('-l --lang <string>', 'Set the language for the application', 'en')
     .version('1.0.0')
     .allowUnknownOption()
     .allowExcessArguments()
