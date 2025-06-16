@@ -1,27 +1,27 @@
 #!/usr/bin/env node
-import { Command as p } from "commander";
+import { Command as d } from "commander";
 import n from "systeminformation";
-import s from "i18n";
-import { fileURLToPath as g } from "url";
-import { dirname as k, join as w } from "path";
-const b = g(import.meta.url), h = k(b), l = new p();
-s.configure({
+import c from "i18n";
+import { fileURLToPath as k } from "url";
+import { dirname as w, join as b } from "path";
+const y = k(import.meta.url), h = w(y), g = new d();
+c.configure({
   locales: ["en", "zh"],
-  directory: w(h, "locales"),
+  directory: b(h, "locales"),
   defaultLocale: "en",
   objectNotation: !0,
   autoReload: !1,
   updateFiles: !1
 });
-function u(o, ...t) {
-  return o.replace(/\{([0-9]+)\}/g, (a, c) => t.at(parseInt(c)) ?? "");
+function l(e, ...t) {
+  return e.replace(/\{([0-9]+)\}/g, (a, s) => t.at(parseInt(s)) ?? "");
 }
-const f = {
+const m = {
   cpu: {
     func: n.cpu,
     options: {
       speed: {
-        func: n.cpuCurrentSpeed
+        func: () => n.cpuCurrentSpeed()
       },
       temperature: {
         func: n.cpuTemperature
@@ -113,27 +113,27 @@ const f = {
   docker: {
     func: n.dockerAll,
     options: {
-      containerProcesses: {
+      top: {
         func: n.dockerContainerProcesses
       },
-      containerStats: {
+      stats: {
         func: n.dockerContainerStats
       },
-      containers: {
+      ps: {
         func: n.dockerContainers
       },
       images: {
         func: n.dockerImages
       },
-      info: {
+      detail: {
         func: n.dockerInfo
       },
-      volumes: {
+      volume: {
         func: n.dockerVolumes
       }
     }
   },
-  virtualbox: {
+  vbox: {
     func: n.vboxInfo
   },
   fs: {
@@ -157,29 +157,33 @@ const f = {
     func: n.getStaticData
   }
 };
-function y() {
-  const o = new p();
-  o.name("sm").description(s.__("description")).version("1.0.0");
-  for (const t in f) {
-    const a = [], c = f[t], i = o.command(t).description(s.__(t));
-    if (a.push(c.func), c.children)
-      for (const e in c.children) {
-        const r = c.children[e], m = u("-{0} --{1} <string>", e.at(0), e), d = u("{0}.options.{1}", t, e);
-        i.option(m, s.__(d)), a.push(r.func);
+function v() {
+  const e = new d();
+  e.name("sm").description(c.__("description")).version("1.0.0");
+  for (const t in m) {
+    const a = [], s = m[t], p = e.command(t).description(c.__(t));
+    if (a.push(async (o) => {
+      o[t] = await s.func();
+    }), s.options)
+      for (const o in s.options) {
+        const u = s.options[o], r = l("-{0} --{1} <string>", o.at(0), o), i = l("{0}.options.{1}", t, o);
+        p.option(r, c.__(i)), a.push(async (f) => {
+          f[o] = await u.func();
+        });
       }
-    i.action(async () => {
-      const e = {};
-      for (const r of a)
-        e[t] = await r();
-      return console.log(e), e;
+    p.action(async () => {
+      const o = {}, u = a.map((i) => i(o));
+      await Promise.all(u);
+      let r = JSON.stringify(o, (i, f) => f, 4);
+      return console.log(r), r;
     });
   }
-  o.allowUnknownOption().allowExcessArguments(), o.parse(process.argv), process.argv.slice(2).length > 0 && o.outputHelp();
+  e.allowUnknownOption().allowExcessArguments(), e.parse(process.argv), process.argv.slice(2).length == 0 && e.outputHelp();
 }
-l.name("sm").option("-l --lang <language>", "Set the language for the application", "en").version("1.0.0").allowUnknownOption().allowExcessArguments().action((o) => {
-  s.setLocale(o.lang), y();
+g.name("sm").option("-l --lang <string>", "Set the language for the application", "en").version("1.0.0").allowUnknownOption().allowExcessArguments().action((e) => {
+  c.setLocale(e.lang), v();
 });
-l.parse(process.argv);
+g.parse(process.argv);
 export {
-  u as replace
+  l as replace
 };

@@ -120,27 +120,27 @@ const commands = {
     docker: {
         func: si.dockerAll,
         options: {
-            processes: {
+            top: {
                 func: si.dockerContainerProcesses
             },
             stats: {
                 func: si.dockerContainerStats
             },
-            containers: {
+            ps: {
                 func: si.dockerContainers
             },
             images: {
                 func: si.dockerImages
             },
-            xccc: {
+            detail: {
                 func: si.dockerInfo
             },
-            volumes: {
+            volume: {
                 func: si.dockerVolumes
             }
         }
     },
-    virtualbox: {
+    vbox: {
         func: si.vboxInfo
     },
     fs: {
@@ -189,8 +189,9 @@ function parse() {
             const stats = {}
             const tasks = actions.map(it => it(stats))
             await Promise.all(tasks)
-            console.log(stats)
-            return stats
+            let text = JSON.stringify(stats, (k, v) => v, 4)
+            console.log(text)
+            return text
         })
     }
     command.allowUnknownOption().allowExcessArguments()
